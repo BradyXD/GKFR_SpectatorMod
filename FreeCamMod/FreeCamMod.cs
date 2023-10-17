@@ -14,13 +14,46 @@ namespace FreeCamMod
     [BepInPlugin("com.appwal.gkfr.miscmods", "Walrus GKFR Mods", "1.0.0.0")]
     public class Plugin : BaseUnityPlugin
     {
+        private float movementSpeed = 45f; // Initial speed value
+        private float fov = 60f; // Initial FOV value
+
         private void Awake()
         {
-            //Harmony.DEBUG = true;
             FileLog.Reset();
-            this.h = new Harmony("com.appwal.gkfr.miscmods");   
+            this.h = new Harmony("com.appwal.gkfr.miscmods");
             this.h.PatchAll(Assembly.GetExecutingAssembly());
-            
+
+            Update += UpdateCallback;
+        }
+
+        private void UpdateCallback()
+        {
+            // Adjust the movement speed using '-' and '+' keys
+            if (Input.GetKeyDown(KeyCode.Minus) || Input.GetKeyDown(KeyCode.KeypadMinus))
+            {
+                movementSpeed -= 5f; // Decrease speed
+            }
+            else if (Input.GetKeyDown(KeyCode.Plus) || Input.GetKeyDown(KeyCode.KeypadPlus))
+            {
+                movementSpeed += 5f; // Increase speed
+            }
+
+            // Clamp the speed within a reasonable range
+            movementSpeed = Mathf.Clamp(movementSpeed, 10f, 100f);
+
+            // Adjust FOV using '9' and '0' keys
+            if (Input.GetKeyDown(KeyCode.Alpha9))
+            {
+                fov -= 5f; // Decrease FOV
+            }
+            else if (Input.GetKeyDown(KeyCode.Alpha0))
+            {
+                fov += 5f; // Increase FOV
+            }
+
+            // Clamp the FOV within a reasonable range
+            fov = Mathf.Clamp(fov, 30f, 120f);
+            Camera.main.fieldOfView = fov;
         }
 
         private void Update()
@@ -28,12 +61,13 @@ namespace FreeCamMod
             bool keyDown = Input.GetKeyDown(KeyCode.F5);
             if (keyDown)
             {
-                Plugin.run = !Plugin.run;
+                run = !run;
             }
         }
 
         private void OnDestroy()
         {
+            Update -= UpdateCallback;
             this.h.UnpatchSelf();
         }
 
